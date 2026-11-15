@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bar Book">
+<meta name="theme-color" content="#14110f">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Bar Book</title>
+<style>
+  :root{
+    --bg:#14110f; --panel:#1f1a17; --panel2:#2a2420; --line:#3a322c;
+    --text:#f3ece4; --muted:#a89a8c; --accent:#d9a55b; --accent2:#f0c27a;
+    --warn:#e8743b; --ok:#6fbf73;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  button,input{font:inherit;color:inherit}
+  .wrap{max-width:720px;margin:0 auto;padding:0 14px calc(40px + env(safe-area-inset-bottom))}
+  header{position:sticky;top:0;z-index:5;background:var(--bg);
+    padding:calc(10px + env(safe-area-inset-top)) 0 8px;border-bottom:1px solid var(--line)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  h1{font-size:22px;margin:0;letter-spacing:.5px;color:var(--accent2);font-weight:700}
+  .status{font-size:12px;color:var(--muted);text-align:right}
+  .search{margin-top:10px;position:relative}
+  .search input{width:100%;padding:12px 40px 12px 14px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);outline:none;font-size:16px}
+  .search input:focus{border-color:var(--accent)}
+  .clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;
+    color:var(--muted);font-size:22px;padding:4px 10px;display:none}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:999px;
+    padding:8px 14px;font-size:14px;white-space:nowrap}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#1a1209;font-weight:700}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin:22px 2px 10px}
+  h2 .count{color:var(--muted);font-weight:400}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;margin:0 0 12px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .name{font-weight:700;font-size:18px;color:var(--accent2)}
+  .barlabel{font-size:12px;color:var(--muted);margin-top:2px}
+  .tag{flex:0 0 auto;font-size:10.5px;font-weight:800;letter-spacing:.8px;padding:3px 7px;border-radius:6px}
+  .tag.unv{background:rgba(232,116,59,.15);color:var(--warn);border:1px solid rgba(232,116,59,.5)}
+  .tag.ver{background:rgba(111,191,115,.12);color:var(--ok);border:1px solid rgba(111,191,115,.45)}
+  .serve{margin:6px 0 8px;color:var(--text);font-size:15px}
+  .serve b{color:var(--muted);font-weight:600}
+  ul.ing{list-style:none;margin:0;padding:0}
+  ul.ing li{padding:3px 0;font-size:16.5px;border-bottom:1px dashed #2f2823}
+  ul.ing li:last-child{border-bottom:0}
+  .preplink{color:var(--accent2);text-decoration:underline;text-decoration-style:dotted;
+    text-underline-offset:3px;cursor:pointer}
+  .method{margin-top:8px;font-size:15px;color:var(--text);font-style:italic}
+  details{margin-top:8px;font-size:13.5px;color:var(--muted)}
+  summary{cursor:pointer;color:var(--muted)}
+  details p{margin:6px 0 0}
+  .empty{color:var(--muted);text-align:center;padding:40px 10px}
+  .banner{background:rgba(232,116,59,.1);border:1px solid rgba(232,116,59,.35);color:#f2b48f;
+    border-radius:12px;padding:10px 12px;font-size:13.5px;margin-top:14px}
+  /* lock */
+  #lock{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;padding:24px}
+  .lockbox{width:100%;max-width:320px;text-align:center}
+  .lockbox h1{font-size:30px;margin-bottom:6px}
+  .lockbox p{color:var(--muted);margin:0 0 18px}
+  .dots{display:flex;justify-content:center;gap:14px;margin-bottom:22px}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent)}
+  .dot.f{background:var(--accent)}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .pad button{padding:16px 0;font-size:22px;border-radius:14px;border:1px solid var(--line);background:var(--panel)}
+  .pad button:active{background:var(--panel2)}
+  .shake{animation:sh .35s}
+  @keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  /* modal */
+  #modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:none;align-items:flex-end;justify-content:center}
+  #modal.show{display:flex}
+  .sheet{background:var(--panel);width:100%;max-width:720px;max-height:85vh;overflow:auto;
+    border-radius:18px 18px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+  .sheet .close{float:right;border:0;background:var(--panel2);border-radius:999px;width:34px;height:34px;font-size:18px}
+</style>
+</head>
+<body>
+
+<div id="lock" style="display:none">
+  <div class="lockbox">
+    <h1>Bar Book</h1>
+    <p>Enter staff code</p>
+    <div class="dots" id="dots"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</div>
+
+<header>
+  <div class="wrap" style="padding-bottom:0">
+    <div class="top"><h1>Bar Book</h1><div class="status" id="status"></div></div>
+    <div class="search">
+      <input id="q" type="search" placeholder="Search drinks, spirits, glass…" autocomplete="off">
+      <button class="clear" id="clr" aria-label="Clear">×</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<div id="modal"><div class="sheet" id="sheet"></div></div>
+
+<script>
+/* ============== SETTINGS — the only part you edit ============== */
+const CONFIG = {
+  // Paste your Google Sheet ID between the quotes (the long code in the sheet's URL
+  // between /d/ and /edit). Leave empty to use the built-in starter recipes.
+  SHEET_ID: "",
+  // 4-digit staff code. Change it, and tell your team.
+  STAFF_CODE: "1234",
+};
+/* =============================================================== */
+
+const STARTER = {"drinks": [{"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Classic Martini", "Glass": "Chilled Nick & Nora", "Ice": "Up (no ice)", "Garnish": "Lemon twist (olive on request)", "Ingredients": "2.5oz Sipsmith London Dry Gin (or Reyka Vodka)\n1/2oz Noilly Prat Extra Dry\n2 dash orange bitters", "Method": "Stir, strain into chilled Nick & Nora", "Notes": "", "Menu Description": "Sipsmith London Dry Gin or Reyka Vodka, Noilly Prat Extra Dry, Orange Bitters", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Dirty Martini", "Glass": "Chilled Nick & Nora", "Ice": "Up (no ice)", "Garnish": "Olive espuma cap", "Ingredients": "2.5oz Truman Vodka\n1/2oz umami brine\nTop: olive espuma", "Method": "Stir, strain into chilled Nick & Nora, cap with olive espuma from iSi", "Notes": "", "Menu Description": "Truman Vodka, Umami Brine, Olive Espuma", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Vesper Martini", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Lemon twist", "Ingredients": "1.5oz Roku Gin\n3/4oz Haku Vodka\n1/2oz Palo Cortado sherry\n1 barspoon bergamot liqueur (Italicus)", "Method": "Stir, strain into chilled coupe", "Notes": "Guess: 'Bergamot' = Italicus. Could be a bergamot tincture or twist.", "Menu Description": "Roku Gin, Haku Vodka, Palo Cortado, Bergamot", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "50 / 50 Martini", "Glass": "Chilled Nick & Nora", "Ice": "Up (no ice)", "Garnish": "3 drops lemon olive oil, lemon twist", "Ingredients": "1.25oz Quattro Gatti Olive Grove Gin\n3/4oz Mancino Secco\n1/2oz Carpano Bianco\n3 drops lemon olive oil", "Method": "Stir, strain into chilled Nick & Nora, float olive oil drops", "Notes": "", "Menu Description": "Quattro Gatti Olive Grove Gin, Mancino Secco, Carpano Bianco, Lemon Olive Oil", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Breakfast Martini (Spirit Free)", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Orange twist", "Ingredients": "2oz Aplós Ease\n3/4oz lemon\n1/2oz jasmine syrup\n1 barspoon yuzu marmalade", "Method": "Shake hard, double strain into chilled coupe", "Notes": "", "Menu Description": "Aplos Ease, Jasmine, Citrus, Yuzu Marmalade", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Espresso Martini", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "3 coffee beans", "Ingredients": "1.5oz Ketel One Oranje\n3/4oz Mr. Black\n1oz fresh espresso\n1/4oz simple syrup\n2 drops saline", "Method": "Shake hard, double strain into chilled coupe", "Notes": "", "Menu Description": "Ketel One Oranje, Mr. Black, Espresso, Sea Salt", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Gin Rickey", "Glass": "Highball", "Ice": "Collins ice", "Garnish": "Lime wheel", "Ingredients": "1.5oz Hayman's Old Tom Gin\n1/2oz umeshu\n1/2oz yellow plum syrup\n1/2oz lime\nTop: 2oz soda", "Method": "Shake (no soda), strain over fresh ice, top soda", "Notes": "Lime + soda aren't on the menu but a Rickey usually has both. Verify.", "Menu Description": "Hayman's Old Tom Gin, Umeshu, Yellow Plum", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Spritz Veneziano (Spirit Free)", "Glass": "Wine glass", "Ice": "Cubes", "Garnish": "Orange half-wheel", "Ingredients": "2oz Ritual Zero Proof Aperitif\n1/2oz coconut cordial\nTop: 3oz Oddbird Blanc de Blancs", "Method": "Build over ice, top Oddbird, gentle stir", "Notes": "", "Menu Description": "Ritual Aperitif, Coconut, Oddbird Blanc de Blancs", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Brown Derby", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Grapefruit twist", "Ingredients": "1.5oz Buffalo Trace\n1/4oz Cynar\n1oz salted grapefruit\n1/2oz honey syrup\n1/4oz lemon", "Method": "Shake, double strain into chilled coupe", "Notes": "", "Menu Description": "Buffalo Trace, Cynar, Salted Pamplemousse, Honey, Lemon", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Matador", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Dehydrated pineapple, dusting of cinnamon", "Ingredients": "1.5oz Maestro Dobel Diamante\n1/2oz pineapple brandy\n3/4oz lime\n3/4oz cinnamon syrup\n2 dash habanero tincture\nClarified with whole milk (see Prep: Milk clarification)", "Method": "Batched + milk-clarified. To serve: pour 3.5oz batch over big cube, stir 5 sec", "Notes": "Guess: 'Lactose' = milk-clarified punch. Could also mean lactose powder for body.", "Menu Description": "Maestro Dobel Diamante, Pineapple Brandy, Citrus, Habanero, Lactose, Cinnamon", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Palmetto", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Orange twist", "Ingredients": "2oz Santa Teresa Coffee Cask\n3/4oz Amaro Montenegro\n1/4oz banana liqueur (Giffard Banane du Brésil)\n2 dash Angostura", "Method": "Stir, strain over big cube", "Notes": "", "Menu Description": "Santa Teresa Coffee Cask, Amaro Montenegro, Banana, Angostura", "Verified": "NO"}, {"Bar": "The Merchant Room Bar", "Menu": "Current", "Drink": "Rob Roy", "Glass": "Chilled Nick & Nora", "Ice": "Up (no ice)", "Garnish": "Luxardo cherry", "Ingredients": "2oz tallow-washed Macallan 15\n3/4oz Cocchi di Torino\n2 dash barrel-aged bitters", "Method": "Stir, strain into chilled Nick & Nora", "Notes": "$60 drink — confirm the real spec before making this one from the app.", "Menu Description": "Macallen 15yr, Dry Aged Ribeye Tallow, Cochi di Torino, Barrel Aged Bitters", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Lychee Cosmopolitan", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Skewered lychee", "Ingredients": "1oz Reyka Vodka\n1/2oz iichiko Shochu\n1/2oz Cointreau\n3/4oz lychee syrup\n1/2oz lime\n2 dash Peychaud's", "Method": "Shake, double strain into chilled coupe", "Notes": "Lime isn't on the menu but cosmos usually have it. Verify.", "Menu Description": "Reyka Vodka, IIchiko Shochu, Cointreau, Lychee, Peychaud", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Riviera Gimlet", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Cucumber ribbon", "Ingredients": "1.5oz Hendrick's Gin\n1/2oz Suze\n1oz cucumber-lime cordial\n1/4oz lime\n2 drops saline", "Method": "Shake, double strain into chilled coupe", "Notes": "", "Menu Description": "Hendrick's Gin, Suze, Cucumber, Sea Salt, Lime", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Caprese Margarita", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Basil leaf, strawberry slice", "Ingredients": "1.5oz Lalo Tequila\n1/4oz St. George Basil Eau-de-Vie\n3/4oz strawberry syrup\n3/4oz lime\n3 drops aged balsamic", "Method": "Shake, strain over fresh ice", "Notes": "", "Menu Description": "Lalo Tequila, Strawberry, Lime, Balsamic St. George Basil Eau-de-Vie", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Southwest Sour", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Pinch toasted sesame seeds", "Ingredients": "1.5oz Altos Reposado Tequila\n3/4oz passion fruit syrup\n1/2oz sesame syrup\n3/4oz lemon\n2 dash habanero tincture", "Method": "Shake, strain over fresh ice", "Notes": "", "Menu Description": "Altos Reposado Tequila, Passion Fruit, Habanero, Sesame, Lemon", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "HB's Old Fashioned", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Orange twist, pineapple frond", "Ingredients": "2oz Bhakta \"Naples Beach Club Blend\"\n1/4oz pineapple syrup\n2 dash tiki bitters", "Method": "Stir, strain over big cube", "Notes": "", "Menu Description": "Bhakta \"Naples Beach Club Blend,\" Pineapple, Tiki Bitters", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Gulfside Martini", "Glass": "Chilled Nick & Nora", "Ice": "Up (no ice)", "Garnish": "Queen olive, rosemary sprig", "Ingredients": "2.5oz olive-oil-washed Belvedere\n1/2oz dry vermouth\n2 drops olive oil on top", "Method": "Stir, strain into chilled Nick & Nora, float olive oil", "Notes": "Vermouth isn't on the menu — could be straight washed vodka. Verify.", "Menu Description": "Belvedere Vodka, Olive Oil, Queen Olive, Rosemarry", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "Orzata Collins (Spirit Free)", "Glass": "Collins", "Ice": "Collins ice", "Garnish": "Lemon wheel", "Ingredients": "1oz orgeat\n1oz lemon\n2 dash orange blossom water\nTop: 3oz soda", "Method": "Shake (no soda), strain over fresh ice, top soda", "Notes": "", "Menu Description": "Almond, Lemon, Orange Blossom, Soda", "Verified": "NO"}, {"Bar": "HB's", "Menu": "Current", "Drink": "HoneyBee (Spirit Free)", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Lemon wheel, dried chamomile", "Ingredients": "1oz yuzu juice\n1oz chamomile honey syrup\n2 drops saline\nTop: 1oz soda", "Method": "Shake (no soda), strain over fresh ice, top soda", "Notes": "", "Menu Description": "Yuzu, Chamomile Honey, Sea Salt", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Sabrina Sunset", "Glass": "Highball", "Ice": "Collins ice", "Garnish": "Fresh raspberries", "Ingredients": "1.5oz Ketel One Vodka\n3/4oz fermented raspberry syrup\n3/4oz lemon\nTop: 2oz soda", "Method": "Shake (no soda), strain over fresh ice, top soda", "Notes": "", "Menu Description": "Ketel One Vodka, Fermented Raspberry, Citrus, Club Soda", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Cooper and Sons", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Dusting of cinnamon", "Ingredients": "1.5oz Del Maguey Chichicapa Mezcal\n3/4oz tamarind syrup\n3/4oz lemon\n1/4oz cinnamon syrup\n2 dash habanero tincture\nClarified with whole milk (see Prep: Milk clarification)", "Method": "Batched + milk-clarified. To serve: pour 3.5oz batch over big cube, stir 5 sec", "Notes": "Same 'Lactose' guess as the Matador — milk-clarified.", "Menu Description": "Del Maguey Chichicapa Mezcal, Tamarind, Habanero, Lemon, Lactose, Cinnamon", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Cuya Cup", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Tajín rim, lime wheel", "Ingredients": "1.5oz Mijenta Blanco\n1/2oz Aperol\n3/4oz passion fruit syrup\n3/4oz lime", "Method": "Shake, strain over fresh ice into Tajín-rimmed rocks", "Notes": "", "Menu Description": "Mijenta Blanco, Aperol, Passionfruit, Lime, Tajin", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "La Sabila (Spirit Free)", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Salt rim, lime wheel", "Ingredients": "2oz Lyre's Agave Blanco\n1oz aloe vera juice\n3/4oz lime\n1/2oz agave syrup\n2 drops saline", "Method": "Shake, strain over fresh ice into salt-rimmed rocks", "Notes": "", "Menu Description": "Lyre's Agave Blanco, Salted Lime, Aloe", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "El Centro", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Orange twist", "Ingredients": "1.5oz Abasolo Whiskey\n3/4oz Amontillado sherry\n1/2oz Nixta Licor de Elote\n2 dash mole bitters", "Method": "Stir, strain over big cube", "Notes": "", "Menu Description": "Abasolo Whiskey, Amontillado Sherry, Nixta Corn, Mole", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Green Flash", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "3–4 drops cilantro oil", "Ingredients": "1.5oz St. George Green Chile Vodka\n1oz fresh cucumber juice\n3/4oz lime\n1/2oz simple syrup", "Method": "Shake, double strain into chilled coupe, dot cilantro oil on top", "Notes": "", "Menu Description": "St. George Green Chile Vodka, Cucumber, Lime, Cilantro Oil", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Cafe Claro (Spirit Free)", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "3 coffee beans", "Ingredients": "1.5oz Seedlip Spice 94\n1oz fresh espresso\n1/2oz agave syrup\n2 drops saline", "Method": "Shake hard, double strain into chilled coupe", "Notes": "", "Menu Description": "Seedlip Spice 94, Fresh Espresso, Agave, Sea Salt", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Dos Amigos", "Glass": "Pacifico bottle + rocks glass", "Ice": "Neat", "Garnish": "Lime wedge on the bottle", "Ingredients": "1 Pacifico Lager\n1.5oz Tequila Ocho Blanco OR Siete Misterios Doba-Yej Mezcal (guest's choice)", "Method": "Serve beer and shot side by side", "Notes": "", "Menu Description": "Pacifico Lager, Shot of Tequila Ocho Blanco or Los Sietes Misterios Doba-Yej Mezcal", "Verified": "NO"}, {"Bar": "Sunset Bar", "Menu": "Current", "Drink": "Gulf Shore Margarita", "Glass": "Rocks (served with Sunset Bar Yeti shaker)", "Ice": "Cubes", "Garnish": "Lime wheel, optional salt rim", "Ingredients": "2oz Patrón El Alto\n3/4oz Grand Marnier Cuvée Louis-Alexandre\n1oz lime\n1/4oz agave syrup", "Method": "Shake in the Yeti shaker, strain over fresh ice. Guest keeps the shaker", "Notes": "$100 presentation drink — confirm the service steps with a lead.", "Menu Description": "Patrón el Alto, Grand Marnier, Cuvée Louis Alexandre, Lime, Served with a Sunset Bar Yeti Shaker", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Piña Colada", "Glass": "Hurricane", "Ice": "Blended", "Garnish": "Pineapple wedge", "Ingredients": "2oz pineapple juice\n1.5oz cream of coconut\n1/2oz lime\n1 cup ice\n+1.5oz rum if added (+$5)", "Method": "Blend until smooth", "Notes": "Served spirit-free unless the guest adds rum.", "Menu Description": "Pineapple, Coconut, Lime. Add Rum +5", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Mango Margarita", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Salt rim, lime wheel", "Ingredients": "1.5oz mango purée\n3/4oz lime\n1/2oz agave syrup\n+1.5oz tequila if added (+$5, or Don Julio 1942 +$30)", "Method": "Shake, strain over fresh ice into salt-rimmed rocks", "Notes": "Served spirit-free unless the guest adds tequila.", "Menu Description": "Mango, Agave lime, Sea Salt. Add Tequila +5, Add Don Julio 1942 +30", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Strawberry Daiquiri", "Glass": "Hurricane", "Ice": "Blended", "Garnish": "Strawberry on the rim", "Ingredients": "4 fresh strawberries (hulled)\n1oz lime\n3/4oz simple syrup\n1 cup ice\n+1.5oz rum if added (+$5)", "Method": "Blend until smooth", "Notes": "Served spirit-free unless the guest adds rum.", "Menu Description": "Fresh Strawberry & Lime. Add Rum +5", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Fountain of Youth", "Glass": "Highball", "Ice": "Collins ice", "Garnish": "Cucumber ribbon", "Ingredients": "1.5oz Tito's Vodka\n1/2oz matcha syrup\n1/2oz lemon\nTop: 3oz cucumber tonic", "Method": "Shake (no tonic), strain over fresh ice, top tonic", "Notes": "", "Menu Description": "Tito's Vodka, Matcha, Citrus, Cucumber Tonic", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Passion Flower", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Edible flower", "Ingredients": "1.5oz Bombay Sapphire\n3/4oz passion fruit syrup\n1/2oz St-Germain\n3/4oz lemon", "Method": "Shake, double strain into chilled coupe", "Notes": "", "Menu Description": "Bombay Sapphire, Passionfruit, St Germain, Fresh Lemon", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Beach Club Punch", "Glass": "Collins", "Ice": "Crushed", "Garnish": "Pineapple wedge, Angostura float", "Ingredients": "2oz Mount Gay Black Barrel\n1.5oz pineapple juice\n3/4oz lime\n1/2oz demerara syrup\n2 dash Angostura (float)", "Method": "Shake, strain over crushed ice, float Angostura", "Notes": "", "Menu Description": "Mount Gay Black Barrel, Pineapple, Lime, Bitters", "Verified": "NO"}, {"Bar": "Pool & Beach", "Menu": "Current", "Drink": "Smoke Show", "Glass": "Rocks", "Ice": "Cubes", "Garnish": "Lime wheel, Tajín half-rim", "Ingredients": "1.5oz Del Maguey Vida Mezcal\n1/2oz Ancho Reyes\n1oz pineapple juice\n3/4oz lime\n1/4oz agave syrup", "Method": "Shake, strain over fresh ice", "Notes": "", "Menu Description": "Del Maguey Mezcal, Pineapple, Lime, Ancho Chile", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "The Wager Pimm's Cup", "Glass": "Highball", "Ice": "Collins ice", "Garnish": "Cucumber, mint sprig, strawberry", "Ingredients": "1.5oz Pimm's No.1\n1/2oz St. George Apple Brandy\n1/2oz lemon\nTop: 3oz ginger beer", "Method": "Build over ice, top ginger beer, gentle stir", "Notes": "", "Menu Description": "Pimm's No.1, St. George Apple Brandy, Lemon, Ginger", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "Azalea #2", "Glass": "Chilled coupe", "Ice": "Up (no ice)", "Garnish": "Dried hibiscus flower", "Ingredients": "1.5oz Maestro Dobel Diamante\n3/4oz pomegranate juice\n1/2oz hibiscus syrup\n3/4oz lime", "Method": "Shake, double strain into chilled coupe", "Notes": "", "Menu Description": "Maestro Dobel Diamante Tequila, Pomegranate, Hibiscus, Lime", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "L & T", "Glass": "Wine glass", "Ice": "Cubes", "Garnish": "Lemon wheel", "Ingredients": "1.5oz Grey Goose Le Citron\n1/2oz Luxardo Limoncello\n1/2oz lemon\nTop: 3oz tonic", "Method": "Build over ice, top tonic, gentle stir", "Notes": "", "Menu Description": "Grey Goose Le Citron, Luxardo Limoncello, Lemon, Tonic", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "Dew Sweeper", "Glass": "Nonic pint / stout glass", "Ice": "None", "Garnish": "None (nitro head)", "Ingredients": "1oz Tullamore D.E.W.\n1/2oz Kahlúa\n2oz cold brew\nTop: 2oz Guinness", "Method": "Likely batched on a nitro tap. If built by hand: stir whiskey, Kahlúa, cold brew; top Guinness", "Notes": "Ask if this pours from a nitro tap.", "Menu Description": "Tullamore D.E.W, Guiness, Kahlua, Cold Brew, Nitro", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "Kingston Julep", "Glass": "Julep cup", "Ice": "Crushed", "Garnish": "Big mint bouquet, toasted coconut flakes", "Ingredients": "2oz Woodford Reserve\n1/2oz toasted coconut syrup\n1oz coconut water\n8 mint leaves", "Method": "Lightly press mint in cup, add rest, fill crushed ice, swizzle, crown with more ice", "Notes": "", "Menu Description": "Woodford Reserve, Toasted Coconut, Coconut Water, Fresh Mint", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "The Big Green (Spirit Free)", "Glass": "Collins", "Ice": "Pebble", "Garnish": "Mint sprig, pineapple frond", "Ingredients": "1/2oz matcha syrup\n1oz cream of coconut\n1.5oz pineapple juice\n3/4oz lime", "Method": "Shake, strain over pebble ice", "Notes": "", "Menu Description": "Matcha, Coconut Cream, Pineapple, Lime", "Verified": "NO"}, {"Bar": "The Wager", "Menu": "Current", "Drink": "Smoking Gun (Spirit Free)", "Glass": "Rocks", "Ice": "Big cube", "Garnish": "Expressed orange twist", "Ingredients": "1.5oz The Pathfinder\n1oz cold lapsang souchong tea\n1/4oz maple syrup", "Method": "Stir, strain over big cube, express orange over top", "Notes": "", "Menu Description": "The Pathfinder, Lapsang Tea, Maple, Orange", "Verified": "NO"}], "preps": [{"Prep": "Simple syrup", "Yield": "~1.5 qt", "Ingredients": "1 qt sugar\n1 qt hot water", "Method": "Stir until dissolved, cool", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Demerara syrup", "Yield": "~1.5 qt", "Ingredients": "1 qt demerara sugar\n1 qt hot water", "Method": "Stir until dissolved, cool", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Honey syrup", "Yield": "~1.5 qt", "Ingredients": "3 parts honey\n1 part hot water", "Method": "Stir until combined, cool", "Shelf Life": "3 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Agave syrup", "Yield": "~1 qt", "Ingredients": "1 part agave nectar\n1 part warm water", "Method": "Stir to combine", "Shelf Life": "3 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Saline", "Yield": "~1 cup", "Ingredients": "20g sea salt\n80g warm water", "Method": "Stir until dissolved; dropper bottle", "Shelf Life": "6 months", "Notes": "", "Verified": "NO"}, {"Prep": "Umami brine", "Yield": "~1 cup", "Ingredients": "6oz Castelvetrano olive brine\n2oz dry vermouth\n1 tsp white soy\nPinch MSG", "Method": "Stir together, chill", "Shelf Life": "2 weeks", "Notes": "Guess — house recipe unknown", "Verified": "NO"}, {"Prep": "Olive espuma", "Yield": "1 iSi (1 pint)", "Ingredients": "12oz olive brine\n4oz water\n2 egg whites (or 1.5g xanthan + 2g lecithin)", "Method": "Blend, strain into iSi, charge with 2 N2O, chill", "Shelf Life": "2 days", "Notes": "Guess — house recipe unknown", "Verified": "NO"}, {"Prep": "Jasmine syrup", "Yield": "~1 qt", "Ingredients": "4 tbsp jasmine green tea\n1 qt hot water (175°F)\n1 qt sugar", "Method": "Steep tea 5 min, strain, stir in sugar", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Yellow plum syrup", "Yield": "~1 qt", "Ingredients": "1 lb yellow plums, pitted and chopped\n1 qt sugar\n1 qt water", "Method": "Simmer 15 min, cool, fine strain", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Coconut cordial", "Yield": "~1 qt", "Ingredients": "1 can coconut milk\n1 cup sugar\n1/2 cup water\nPinch salt\n1/2 tsp citric acid", "Method": "Warm and stir until dissolved, cool, strain", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Salted grapefruit", "Yield": "~1 qt", "Ingredients": "1 qt fresh grapefruit juice\n1 cup sugar\n1 tsp salt", "Method": "Stir until dissolved, fine strain", "Shelf Life": "3 days", "Notes": "'Salted Pamplemousse' on the menu", "Verified": "NO"}, {"Prep": "Habanero tincture", "Yield": "~8oz", "Ingredients": "4 habaneros, sliced\n8oz high-proof vodka or Everclear", "Method": "Steep 24–48 hrs, taste often, strain into dasher", "Shelf Life": "6 months", "Notes": "Wear gloves", "Verified": "NO"}, {"Prep": "Cinnamon syrup", "Yield": "~1 qt", "Ingredients": "6 cinnamon sticks, crushed\n1 qt water\n1 qt sugar", "Method": "Simmer sticks in water 10 min, add sugar, steep 1 hr, strain", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Milk clarification", "Yield": "Batch", "Ingredients": "1 part whole milk to 4 parts cocktail batch", "Method": "Pour cocktail INTO the milk (not reverse), let curdle 30 min, strain through coffee filter; re-pour first cloudy part. Bottle clear liquid", "Shelf Life": "2–3 weeks refrigerated", "Notes": "Used for Matador and Cooper and Sons. Guess that 'Lactose' means this", "Verified": "NO"}, {"Prep": "Tallow-washed Macallan 15", "Yield": "750ml", "Ingredients": "750ml Macallan 15\n2oz rendered dry-aged ribeye tallow (warm)", "Method": "Combine, shake, rest 4 hrs at room temp, freeze overnight, strain fat through coffee filter", "Shelf Life": "3 months", "Notes": "", "Verified": "NO"}, {"Prep": "Lychee syrup", "Yield": "~1 qt", "Ingredients": "1 can lychees in syrup (blended)\n1 cup sugar\n1 cup water", "Method": "Blend, warm to dissolve sugar, fine strain", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Cucumber-lime cordial", "Yield": "~1 qt", "Ingredients": "2 cups fresh cucumber juice\n1 cup lime juice\n2 cups sugar\nPinch salt", "Method": "Stir until dissolved, fine strain", "Shelf Life": "4 days", "Notes": "", "Verified": "NO"}, {"Prep": "Strawberry syrup", "Yield": "~1 qt", "Ingredients": "2 parts simple syrup\n1 part strawberry purée", "Method": "Stir to combine", "Shelf Life": "5 days", "Notes": "", "Verified": "NO"}, {"Prep": "Passion fruit syrup", "Yield": "~1 qt", "Ingredients": "2 cups passion fruit purée\n2 cups simple syrup", "Method": "Stir to combine", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Sesame syrup", "Yield": "~1 qt", "Ingredients": "1/2 cup toasted sesame seeds\n2 cups water\n2 cups sugar", "Method": "Blend seeds with warm water, rest 1 hr, strain through cheesecloth, stir in sugar", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Pineapple syrup", "Yield": "~1 qt", "Ingredients": "2 cups fresh pineapple chunks\n2 cups sugar\n1 cup water", "Method": "Macerate pineapple in sugar overnight, add water, warm, strain", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Olive-oil-washed Belvedere", "Yield": "750ml", "Ingredients": "750ml Belvedere\n3oz good olive oil", "Method": "Combine, shake, rest 2 hrs, freeze overnight, strain oil off through coffee filter", "Shelf Life": "3 months", "Notes": "", "Verified": "NO"}, {"Prep": "Chamomile honey syrup", "Yield": "~1 qt", "Ingredients": "3 tbsp chamomile tea\n1 cup hot water\n3 cups honey", "Method": "Steep tea 5 min, strain, stir in honey", "Shelf Life": "3 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Fermented raspberry syrup", "Yield": "~1 qt", "Ingredients": "1 lb raspberries\n2% salt by weight\nSugar 1:1 with the strained liquid", "Method": "Lacto-ferment raspberries with salt 3–5 days, blend, strain, add sugar 1:1", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Tamarind syrup", "Yield": "~1 qt", "Ingredients": "8oz tamarind paste\n2 cups hot water\n2 cups sugar", "Method": "Dissolve paste in water, strain, stir in sugar", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Cilantro oil", "Yield": "~1 cup", "Ingredients": "2 cups cilantro (packed)\n1 cup neutral oil", "Method": "Blanch cilantro 10 sec, ice bath, dry, blend with oil 2 min, strain through coffee filter; dropper bottle", "Shelf Life": "1 week", "Notes": "", "Verified": "NO"}, {"Prep": "Matcha syrup", "Yield": "~1 qt", "Ingredients": "2 tbsp culinary matcha\n2 cups warm water\n2 cups sugar", "Method": "Whisk matcha into water, stir in sugar", "Shelf Life": "4 days", "Notes": "", "Verified": "NO"}, {"Prep": "Toasted coconut syrup", "Yield": "~1 qt", "Ingredients": "1 cup toasted coconut flakes\n2 cups water\n2 cups demerara sugar", "Method": "Simmer coconut in water 10 min, steep 30 min, strain, add sugar", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}, {"Prep": "Hibiscus syrup", "Yield": "~1 qt", "Ingredients": "1/2 cup dried hibiscus\n2 cups hot water\n2 cups sugar", "Method": "Steep 10 min, strain, stir in sugar", "Shelf Life": "2 weeks", "Notes": "", "Verified": "NO"}]};
+
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }
+};
+
+/* ---------- lock ---------- */
+function startLock(onOk){
+  if (!CONFIG.STAFF_CODE || store.get("bb_code") === CONFIG.STAFF_CODE) return onOk();
+  const lock = document.getElementById("lock"), dots = document.getElementById("dots"), pad = document.getElementById("pad");
+  lock.style.display = "flex";
+  let entry = "";
+  const n = CONFIG.STAFF_CODE.length;
+  const draw = () => { dots.innerHTML = Array.from({length:n},(_,i)=>`<div class="dot ${i<entry.length?'f':''}"></div>`).join("") };
+  ["1","2","3","4","5","6","7","8","9","","0","⌫"].forEach(k=>{
+    const b = document.createElement("button");
+    b.textContent = k; if (!k) b.style.visibility = "hidden";
+    b.onclick = () => {
+      if (k === "⌫") entry = entry.slice(0,-1);
+      else if (entry.length < n) entry += k;
+      draw();
+      if (entry.length === n){
+        if (entry === CONFIG.STAFF_CODE){ store.set("bb_code", entry); lock.style.display="none"; onOk(); }
+        else { dots.classList.remove("shake"); void dots.offsetWidth; dots.classList.add("shake"); entry=""; setTimeout(draw,350); }
+      }
+    };
+    pad.appendChild(b);
+  });
+  draw();
+}
+
+/* ---------- CSV ---------- */
+function parseCSV(text){
+  const rows=[]; let row=[], f="", q=false;
+  for (let i=0;i<text.length;i++){
+    const c=text[i];
+    if (q){
+      if (c==='"'){ if (text[i+1]==='"'){ f+='"'; i++; } else q=false; }
+      else f+=c;
+    } else if (c==='"') q=true;
+    else if (c===','){ row.push(f); f=""; }
+    else if (c==='\n'){ row.push(f); rows.push(row); row=[]; f=""; }
+    else if (c!=='\r') f+=c;
+  }
+  if (f!=="" || row.length){ row.push(f); rows.push(row); }
+  const head = (rows.shift()||[]).map(h=>h.trim());
+  return rows.filter(r=>r.some(x=>x.trim())).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+async function fetchTab(name){
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
+  const r = await fetch(url, {cache:"no-store"});
+  if (!r.ok) throw new Error("HTTP "+r.status);
+  return parseCSV(await r.text());
+}
+
+/* ---------- state ---------- */
+let DATA = STARTER, bar = null, query = "";
+const $ = id => document.getElementById(id);
+const esc = s => String(s||"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isVerified = v => /^(yes|y|true|x|✓|✔|verified)$/i.test(String(v||"").trim());
+
+function bars(){
+  const seen=[]; DATA.drinks.forEach(d=>{ if (d.Bar && !seen.includes(d.Bar)) seen.push(d.Bar) }); return seen;
+}
+function prepIndex(){
+  return DATA.preps.filter(p=>p.Prep).map(p=>({name:p.Prep, key:p.Prep.toLowerCase(), p}))
+    .sort((a,b)=>b.key.length-a.key.length);
+}
+
+/* ---------- render ---------- */
+function renderChips(){
+  const list = [...bars(), "Preps"];
+  if (!bar || !list.includes(bar)) bar = list[0];
+  $("chips").innerHTML = list.map(b=>`<button class="chip ${b===bar && !query?'on':''}" data-b="${esc(b)}">${esc(b)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(el=>el.onclick=()=>{
+    bar = el.dataset.b; query=""; $("q").value=""; $("clr").style.display="none"; render(); window.scrollTo(0,0);
+  });
+}
+function linkPreps(line, idx){
+  const low = line.toLowerCase();
+  for (const it of idx){
+    const at = low.indexOf(it.key);
+    if (at >= 0){
+      return esc(line.slice(0,at)) + `<span class="preplink" data-prep="${esc(it.name)}">${esc(line.slice(at,at+it.key.length))}</span>` + esc(line.slice(at+it.key.length));
+    }
+  }
+  return esc(line);
+}
+function drinkCard(d, showBar, idx){
+  const ver = isVerified(d.Verified);
+  const serve = [d.Glass, d.Ice, d.Garnish].filter(Boolean).map(esc).join(", ");
+  const ings = String(d.Ingredients||"").split(/\n|;\s*/).map(s=>s.trim()).filter(Boolean);
+  const more = [d.Notes && `<p><b>Notes:</b> ${esc(d.Notes)}</p>`, d["Menu Description"] && `<p><b>Menu says:</b> ${esc(d["Menu Description"])}</p>`].filter(Boolean).join("");
+  return `<div class="card">
+    <div class="head">
+      <div><div class="name">“${esc(d.Drink)}”</div>${showBar?`<div class="barlabel">${esc(d.Bar)} · ${esc(d.Menu||"Current")}</div>`:""}</div>
+      <span class="tag ${ver?'ver':'unv'}">${ver?'VERIFIED':'UNVERIFIED'}</span>
+    </div>
+    ${serve?`<div class="serve"><b>&gt;</b> ${serve}</div>`:""}
+    <ul class="ing">${ings.map(i=>`<li>${linkPreps(i, idx)}</li>`).join("")}</ul>
+    ${d.Method?`<div class="method">${esc(d.Method)}</div>`:""}
+    ${more?`<details><summary>Notes &amp; menu description</summary>${more}</details>`:""}
+  </div>`;
+}
+function prepCard(p){
+  const ver = isVerified(p.Verified);
+  const ings = String(p.Ingredients||"").split(/\n|;\s*/).map(s=>s.trim()).filter(Boolean);
+  const meta = [p.Yield && `Yield: ${esc(p.Yield)}`, p["Shelf Life"] && `Keeps: ${esc(p["Shelf Life"])}`].filter(Boolean).join(" · ");
+  return `<div class="card">
+    <div class="head"><div><div class="name">${esc(p.Prep)}</div>${meta?`<div class="barlabel">${meta}</div>`:""}</div>
+      <span class="tag ${ver?'ver':'unv'}">${ver?'VERIFIED':'UNVERIFIED'}</span></div>
+    <ul class="ing" style="margin-top:8px">${ings.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+    ${p.Method?`<div class="method">${esc(p.Method)}</div>`:""}
+    ${p.Notes?`<details><summary>Notes</summary><p>${esc(p.Notes)}</p></details>`:""}
+  </div>`;
+}
+function render(){
+  renderChips();
+  const idx = prepIndex();
+  const main = $("main");
+  let html = "";
+  if (query){
+    const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = o => { const hay = Object.values(o).join(" ").toLowerCase(); return terms.every(t=>hay.includes(t)) };
+    const ds = DATA.drinks.filter(hit), ps = DATA.preps.filter(hit);
+    if (ds.length) html += `<h2>Drinks <span class="count">${ds.length}</span></h2>` + ds.map(d=>drinkCard(d,true,idx)).join("");
+    if (ps.length) html += `<h2>Preps <span class="count">${ps.length}</span></h2>` + ps.map(prepCard).join("");
+    if (!html) html = `<div class="empty">Nothing matches “${esc(query)}”.</div>`;
+  } else if (bar === "Preps"){
+    const ps = [...DATA.preps].sort((a,b)=>a.Prep.localeCompare(b.Prep));
+    html = `<h2>Preps <span class="count">${ps.length}</span></h2>` + ps.map(prepCard).join("");
+  } else {
+    const ds = DATA.drinks.filter(d=>d.Bar===bar);
+    const groups = []; ds.forEach(d=>{ const m = d.Menu || "Current"; if (!groups.includes(m)) groups.push(m) });
+    groups.sort((a,b)=>(b.toLowerCase()==="current")-(a.toLowerCase()==="current"));
+    groups.forEach(m=>{
+      const list = ds.filter(d=>(d.Menu||"Current")===m);
+      const title = m.toLowerCase()==="current" ? "Current Menu" : `Past Menu — ${m}`;
+      html += `<h2>${esc(title)} <span class="count">${list.length}</span></h2>` + list.map(d=>drinkCard(d,false,idx)).join("");
+    });
+    if (!ds.length) html = `<div class="empty">No drinks for this bar yet.</div>`;
+  }
+  if (!CONFIG.SHEET_ID) html += `<div class="banner">Showing built-in starter recipes. Every spec is a guess until it's marked VERIFIED.</div>`;
+  main.innerHTML = html;
+  main.querySelectorAll(".preplink").forEach(el=>el.onclick=()=>openPrep(el.dataset.prep));
+}
+function openPrep(name){
+  const p = DATA.preps.find(x=>x.Prep===name); if (!p) return;
+  $("sheet").innerHTML = `<button class="close" aria-label="Close">×</button><h2 style="margin-top:4px">Prep</h2>` + prepCard(p);
+  $("sheet").querySelector(".close").onclick = closeModal;
+  $("modal").classList.add("show");
+}
+function closeModal(){ $("modal").classList.remove("show") }
+$("modal").onclick = e => { if (e.target.id==="modal") closeModal() };
+
+$("q").addEventListener("input", e=>{ query = e.target.value.trim(); $("clr").style.display = query?"block":"none"; render(); });
+$("clr").onclick = ()=>{ query=""; $("q").value=""; $("clr").style.display="none"; render(); $("q").blur(); };
+
+/* ---------- load ---------- */
+async function load(){
+  if (!CONFIG.SHEET_ID){ $("status").textContent = "Starter recipes"; render(); return; }
+  const cached = store.get("bb_cache");
+  if (cached){ try{ DATA = JSON.parse(cached); }catch(e){} }
+  render();
+  $("status").textContent = "Updating…";
+  try{
+    const [drinks, preps] = await Promise.all([fetchTab("Drinks"), fetchTab("Preps")]);
+    if (!drinks.length) throw new Error("empty");
+    DATA = {drinks, preps};
+    store.set("bb_cache", JSON.stringify(DATA));
+    $("status").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    render();
+  }catch(e){
+    $("status").textContent = cached ? "Offline — saved copy" : "Couldn't reach sheet";
+  }
+}
+startLock(load);
+</script>
+</body>
+</html>
